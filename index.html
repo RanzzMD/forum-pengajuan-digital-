@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum Pengajuan Izin Digital</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    
+    html {
+      height: 100%;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .gradient-bg::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-20px, 20px) rotate(5deg); }
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .input-field {
+      transition: all 0.3s ease;
+      border: 2px solid #e2e8f0;
+    }
+    
+    .input-field:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .file-upload-box {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .file-upload-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .file-upload-box:hover::before {
+      left: 100%;
+    }
+    
+    .file-upload-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+    
+    .submit-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .submit-button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .submit-button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .submit-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    }
+    
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px) scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .loading-spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .section-header {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .section-header::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+    
+    .submission-card {
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    
+    .submission-card:hover {
+      transform: translateX(8px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .icon-bounce {
+      animation: bounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body>
+  <div id="app" class="min-h-full gradient-bg p-6">
+   <div class="max-w-4xl mx-auto"><!-- Header -->
+    <div class="text-center mb-8 fade-in">
+     <div class="inline-block mb-4">
+      <div class="text-6xl icon-bounce">
+       📋
+      </div>
+     </div>
+     <h1 id="form-title" class="text-4xl font-bold mb-2 text-white drop-shadow-lg">Forum Pengajuan Izin Digital</h1>
+     <p id="form-subtitle" class="text-xl text-white opacity-90">Lengkapi formulir di bawah ini untuk mengajukan izin</p>
+    </div><!-- Form Container -->
+    <div class="glass-card rounded-2xl shadow-2xl p-8 mb-8 fade-in">
+     <form id="submission-form"><!-- Data Diri Section -->
+      <div class="mb-8">
+       <h2 class="section-header text-2xl font-semibold mb-6">👤 Data Diri</h2>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div><label for="nama_lengkap" class="block text-sm font-semibold mb-2">Nama Lengkap *</label> <input type="text" id="nama_lengkap" name="nama_lengkap" required class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+        <div><label for="nik" class="block text-sm font-semibold mb-2">NIK (Nomor Induk Kependudukan) *</label> <input type="text" id="nik" name="nik" required pattern="[0-9]{16}" maxlength="16" class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="16 digit">
+        </div>
+        <div><label for="tempat_lahir" class="block text-sm font-semibold mb-2">Tempat Lahir *</label> <input type="text" id="tempat_lahir" name="tempat_lahir" required class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+        <div><label for="tanggal_lahir" class="block text-sm font-semibold mb-2">Tanggal Lahir *</label> <input type="date" id="tanggal_lahir" name="tanggal_lahir" required class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+        <div class="md:col-span-2"><label for="alamat" class="block text-sm font-semibold mb-2">Alamat Lengkap *</label> <textarea id="alamat" name="alamat" required rows="3" class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400"></textarea>
+        </div>
+        <div><label for="no_telepon" class="block text-sm font-semibold mb-2">Nomor Telepon *</label> <input type="tel" id="no_telepon" name="no_telepon" required class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="08xxxxxxxxxx">
+        </div>
+        <div><label for="email" class="block text-sm font-semibold mb-2">Email *</label> <input type="email" id="email" name="email" required class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        </div>
+       </div>
+      </div><!-- Lampiran Section -->
+      <div class="mb-8">
+       <h2 class="section-header text-2xl font-semibold mb-6">📎 Lampiran Dokumen</h2>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div><label class="block text-sm font-semibold mb-3">Foto KTP *</label>
+         <div class="file-upload-box border-2 border-dashed rounded-xl p-8 text-center"><input type="file" id="foto_ktp" name="foto_ktp" accept="image/*" required class="hidden"> <label for="foto_ktp" class="cursor-pointer block">
+           <div class="text-5xl mb-3">
+            📄
+           </div>
+           <div class="text-sm font-semibold mb-1">
+            Klik untuk upload Foto KTP
+           </div>
+           <div class="text-xs opacity-70">
+            Format: JPG, PNG (Max 5MB)
+           </div></label>
+          <div id="ktp-preview" class="mt-4 text-sm font-semibold text-green-600 hidden"></div>
+         </div>
+        </div>
+        <div><label class="block text-sm font-semibold mb-3">Surat Keterangan Belum Nikah *</label>
+         <div class="file-upload-box border-2 border-dashed rounded-xl p-8 text-center"><input type="file" id="surat_keterangan" name="surat_keterangan" accept="image/*,application/pdf" required class="hidden"> <label for="surat_keterangan" class="cursor-pointer block">
+           <div class="text-5xl mb-3">
+            📋
+           </div>
+           <div class="text-sm font-semibold mb-1">
+            Klik untuk upload Surat
+           </div>
+           <div class="text-xs opacity-70">
+            Format: JPG, PNG, PDF (Max 5MB)
+           </div></label>
+          <div id="surat-preview" class="mt-4 text-sm font-semibold text-green-600 hidden"></div>
+         </div>
+        </div>
+       </div>
+      </div><!-- Alasan Section -->
+      <div class="mb-8">
+       <h2 class="section-header text-2xl font-semibold mb-6">✍️ Alasan Pengajuan</h2>
+       <div><label for="alasan" class="block text-sm font-semibold mb-3">Jelaskan alasan pengajuan izin Anda *</label> <textarea id="alasan" name="alasan" required rows="6" class="input-field w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="Tuliskan alasan pengajuan izin secara lengkap dan jelas..."></textarea>
+       </div>
+      </div><!-- Submit Button -->
+      <div class="text-center"><button type="submit" id="submit-btn" class="submit-button px-10 py-4 rounded-xl font-bold text-lg shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-white relative z-10"> <span id="submit-text" class="relative z-10">Kirim Pengajuan 🚀</span>
+        <div id="submit-spinner" class="loading-spinner mx-auto hidden"></div></button>
+      </div>
+     </form>
+    </div><!-- Submissions List -->
+    <div class="glass-card rounded-2xl shadow-2xl p-8 fade-in">
+     <h2 class="section-header text-2xl font-semibold mb-6">📊 Daftar Pengajuan</h2>
+     <div id="submissions-list" class="space-y-4">
+      <p class="text-center py-8 text-gray-500">Belum ada pengajuan</p>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#f0f4f8",
+      surface_color: "#ffffff",
+      text_color: "#1e293b",
+      primary_action_color: "#3b82f6",
+      secondary_action_color: "#64748b",
+      font_family: "system-ui",
+      font_size: 16,
+      form_title: "Forum Pengajuan Izin Digital",
+      form_subtitle: "Lengkapi formulir di bawah ini untuk mengajukan izin",
+      submit_button_text: "Kirim Pengajuan"
+    };
+
+    let currentRecordCount = 0;
+
+    const dataHandler = {
+      onDataChanged(data) {
+        currentRecordCount = data.length;
+        renderSubmissions(data);
+      }
+    };
+
+    async function onConfigChange(config) {
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+      
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+      const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+      
+      document.body.style.background = backgroundColor;
+      document.body.style.color = textColor;
+      document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      const formTitle = document.getElementById('form-title');
+      formTitle.textContent = config.form_title || defaultConfig.form_title;
+      formTitle.style.fontSize = `${baseSize * 2}px`;
+      formTitle.style.color = '#ffffff';
+      formTitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      const formSubtitle = document.getElementById('form-subtitle');
+      formSubtitle.textContent = config.form_subtitle || defaultConfig.form_subtitle;
+      formSubtitle.style.fontSize = `${baseSize * 1.25}px`;
+      formSubtitle.style.color = '#ffffff';
+      formSubtitle.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      const submitText = document.getElementById('submit-text');
+      submitText.textContent = config.submit_button_text || defaultConfig.submit_button_text;
+      
+      const formContainers = document.querySelectorAll('.rounded-lg.shadow-lg');
+      formContainers.forEach(container => {
+        container.style.background = surfaceColor;
+      });
+      
+      const headings = document.querySelectorAll('h2');
+      headings.forEach(heading => {
+        heading.style.fontSize = `${baseSize * 1.5}px`;
+        heading.style.color = textColor;
+        heading.style.borderColor = primaryColor;
+        heading.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      });
+      
+      const labels = document.querySelectorAll('label');
+      labels.forEach(label => {
+        label.style.fontSize = `${baseSize * 0.875}px`;
+        label.style.color = textColor;
+        label.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      });
+      
+      const inputs = document.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.style.fontSize = `${baseSize}px`;
+        input.style.color = textColor;
+        input.style.borderColor = secondaryColor;
+        input.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      });
+      
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.style.background = primaryColor;
+      submitBtn.style.color = '#ffffff';
+      submitBtn.style.fontSize = `${baseSize * 1.125}px`;
+      submitBtn.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      const fileUploadLabels = document.querySelectorAll('.file-upload-label');
+      fileUploadLabels.forEach(label => {
+        label.style.borderColor = secondaryColor;
+      });
+      
+      const fileUploadTexts = document.querySelectorAll('.file-upload-label .text-sm');
+      fileUploadTexts.forEach(text => {
+        text.style.fontSize = `${baseSize * 0.875}px`;
+        text.style.color = textColor;
+      });
+      
+      const fileUploadSmallTexts = document.querySelectorAll('.file-upload-label .text-xs');
+      fileUploadSmallTexts.forEach(text => {
+        text.style.fontSize = `${baseSize * 0.75}px`;
+        text.style.color = secondaryColor;
+      });
+    }
+
+    function renderSubmissions(data) {
+      const container = document.getElementById('submissions-list');
+      
+      if (data.length === 0) {
+        container.innerHTML = '<p class="text-center py-8">Belum ada pengajuan</p>';
+        return;
+      }
+      
+      const sortedData = [...data].sort((a, b) => 
+        new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan)
+      );
+      
+      container.innerHTML = sortedData.map(submission => `
+        <div class="submission-card bg-white rounded-xl p-6 shadow-md" style="border-left-color: ${window.elementSdk?.config?.primary_action_color || defaultConfig.primary_action_color}">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color}">${submission.nama_lengkap}</h3>
+              <p class="text-sm mt-1 opacity-70">NIK: ${submission.nik}</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-bold shadow-sm" style="background: linear-gradient(135deg, ${window.elementSdk?.config?.primary_action_color || defaultConfig.primary_action_color}, ${window.elementSdk?.config?.secondary_action_color || defaultConfig.secondary_action_color}); color: white;">
+              ${submission.status}
+            </span>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4 bg-gray-50 p-4 rounded-lg">
+            <div>
+              <span class="font-semibold block mb-1">📍 Tempat, Tanggal Lahir:</span>
+              <p>${submission.tempat_lahir}, ${new Date(submission.tanggal_lahir).toLocaleDateString('id-ID')}</p>
+            </div>
+            <div>
+              <span class="font-semibold block mb-1">📞 Kontak:</span>
+              <p>${submission.no_telepon}</p>
+              <p>${submission.email}</p>
+            </div>
+          </div>
+          
+          <div class="mb-4 bg-blue-50 p-4 rounded-lg">
+            <span class="font-semibold text-sm block mb-2">🏠 Alamat:</span>
+            <p class="text-sm">${submission.alamat}</p>
+          </div>
+          
+          <div class="mb-4 bg-purple-50 p-4 rounded-lg">
+            <span class="font-semibold text-sm block mb-2">✍️ Alasan:</span>
+            <p class="text-sm">${submission.alasan}</p>
+          </div>
+          
+          <div class="flex flex-wrap gap-3 text-sm mb-4">
+            <div class="bg-green-100 px-4 py-2 rounded-lg">
+              <span class="font-semibold">📄 Foto KTP:</span>
+              <span class="ml-2 text-green-700">✓ Terlampir</span>
+            </div>
+            <div class="bg-green-100 px-4 py-2 rounded-lg">
+              <span class="font-semibold">📋 Surat Keterangan:</span>
+              <span class="ml-2 text-green-700">✓ Terlampir</span>
+            </div>
+          </div>
+          
+          <div class="text-xs pt-3 border-t opacity-60">
+            🕒 Diajukan: ${new Date(submission.tanggal_pengajuan).toLocaleString('id-ID')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+      toast.style.color = '#ffffff';
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('foto_ktp').addEventListener('change', function(e) {
+      const preview = document.getElementById('ktp-preview');
+      if (e.target.files.length > 0) {
+        preview.textContent = `✓ ${e.target.files[0].name}`;
+        preview.classList.remove('hidden');
+      } else {
+        preview.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('surat_keterangan').addEventListener('change', function(e) {
+      const preview = document.getElementById('surat-preview');
+      if (e.target.files.length > 0) {
+        preview.textContent = `✓ ${e.target.files[0].name}`;
+        preview.classList.remove('hidden');
+      } else {
+        preview.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('submission-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (currentRecordCount >= 999) {
+        showToast('Batas maksimum 999 pengajuan telah tercapai. Silakan hapus beberapa pengajuan terlebih dahulu.', 'error');
+        return;
+      }
+      
+      const submitBtn = document.getElem
