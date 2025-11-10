@@ -202,3 +202,128 @@ html {
 .fade-in {
   animation: fadeIn 0.6s ease-in;
 }
+
+// ===== Viewer Utilities =====
+let currentObjectURL = null;
+
+function isDataURL(str) {
+  return typeof str === "string" && /^data:/.test(str);
+}
+function getMimeFromDataURL(dataURL) {
+  const m = dataURL.match(/^data:([^;]+);/);
+  return m ? m[1] : "";
+}
+async function dataURLToObjectURL(dataURL) {
+  // Konversi dataURL -> Blob URL (lebih ringan untuk iframe/img)
+  const res = await fetch(dataURL);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  return url;
+}
+
+async function openViewer(src, title = "Pratinjau Dokumen", forceType = "auto") {
+  const backdrop = document.getElementById("viewer-backdrop");
+  const modal = document.getElementById("viewer-modal");
+  const body = document.getElementById("viewer-body");
+  const titleEl = document.getElementById("viewer-title");
+  const listCard = document.getElementById("submissions-card");
+
+  // Bersihkan konten sebelumnya
+  body.innerHTML = "";
+  if (currentObjectURL) {
+    URL.revokeObjectURL(currentObjectURL);
+    currentObjectURL = null;
+  }
+
+  let viewType = forceType;
+  let viewSrc = src;
+
+  try {
+    // Deteksi mime (kalau dataURL)
+    if (isDataURL(src)) {
+      const mime = getMimeFromDataURL(src);
+      if (viewType === "auto") {
+        if (mime.includes("pdf")) viewType = "pdf";
+        else if (mime.startsWith("image/")) viewType = "image";
+        else viewType = "download";
+      }
+      // Selalu pakai Blob URL untuk stabilitas
+      viewSrc = await dataURLToObjectURL(src);
+      currentObjectURL = viewSrc;
+    } else {
+      // src adalah URL biasa → coba tebak dari ekstensi
+      if (viewType === "auto") {
+        if (/\.(pdf)(\?|#|$)/i.test(src)) viewType = "pdf";
+        else if (/\.(png|jpe?g|webp|gif|bmp|svg)(\?|#|$)/i.test(src)) viewType = "image";
+        else viewType = "download";
+      }
+    }
+
+    // Buat elemen viewer
+    if (viewType === "image") {
+      const img = document.createElement("img");
+      img.src = viewSrc;
+      img.alt = title;
+      img.className = "w-full h-full object-contain";
+      body.appendChild(img);
+    } else if (viewType === "pdf") {
+      const iframe = document.createElement("iframe");
+      iframe.src = viewSrc;
+      iframe.title = title;
+      iframe.className = "w-full h-full";
+      iframe.setAttribute("loading", "eager");
+      body.appendChild(iframe);
+    } else {
+      // fallback: tampilkan tombol unduh
+      const wrap = document.createElement("div");
+      wrap.className = "w-full h-full flex items-center justify-center";
+      wrap.innerHTML = `
+        <a href="${viewSrc}" download class="px-4 py-2 rounded-lg bg-indigo-600 text-white">Unduh Dokumen</a>
+      `;
+      body.appendChild(wrap);
+    }
+
+    // Update judul
+    titleEl.textContent = title;
+
+    // Tampilkan modal & sembunyikan daftar
+    backdrop.classList.remove("hidden");
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    if (listCard) listCard.classList.add("hidden");
+
+    // Event tutup
+    const close = () => closeViewer();
+    document.getElementById("viewer-close").onclick = close;
+    backdrop.onclick = close;
+
+    // ESC untuk menutup
+    window.addEventListener("keydown", onEscClose);
+  } catch (err) {
+    console.error(err);
+    showToast("Tidak dapat menampilkan dokumen.", "error");
+  }
+}
+
+function closeViewer() {
+  const backdrop = document.getElementById("viewer-backdrop");
+  const modal = document.getElementById("viewer-modal");
+  const body = document.getElementById("viewer-body");
+  const listCard = document.getElementById("submissions-card");
+
+  backdrop.classList.add("hidden");
+  modal.classList.add("hidden");
+  document.body.style.overflow = "";
+  if (listCard) listCard.classList.remove("hidden");
+
+  body.innerHTML = "";
+  if (currentObjectURL) {
+    URL.revokeObjectURL(currentObjectURL);
+    currentObjectURL = null;
+  }
+  window.removeEventListener("keydown", onEscClose);
+}
+
+function onEscClose(e) {
+  if (e.key === "Escape") closeViewer();
+         }
