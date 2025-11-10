@@ -194,6 +194,19 @@
     <div class="text-gray-500 text-sm">Belum ada pengajuan</div>
   </div>
 </div>
+    <!-- Viewer Modal -->
+<div id="viewer-backdrop" class="fixed inset-0 bg-black/60 hidden z-[2000]"></div>
+<div id="viewer-modal" class="fixed inset-0 hidden z-[2001] p-4">
+  <div class="relative max-w-5xl w-full h-[90vh] mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div class="flex items-center justify-between p-4 border-b">
+      <div class="font-semibold" id="viewer-title">Pratinjau Dokumen</div>
+      <button id="viewer-close" class="px-3 py-1.5 rounded-lg bg-gray-900 text-white">Tutup ✕</button>
+    </div>
+    <div id="viewer-body" class="flex-1 bg-gray-50">
+      <!-- Konten diisi dinamis (img/iframe) -->
+    </div>
+  </div>
+</div>
     <!-- App Script -->
     <script src="./app.js" defer></script>
   </body>
