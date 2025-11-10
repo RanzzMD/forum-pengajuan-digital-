@@ -216,7 +216,7 @@ function renderSubmissions(data) {
     new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan)
   );
 
-  container.innerHTML = sortedData.map(submission => `
+  container.innerHTML = sortedData.map((submission, idx) => `
     <div class="submission-card bg-white rounded-xl p-6 shadow-md" style="border-left-color:${primary}">
       <div class="flex justify-between items-start mb-4">
         <div>
@@ -251,21 +251,37 @@ function renderSubmissions(data) {
         <p class="text-sm whitespace-pre-wrap">${submission.alasan}</p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-4 mt-2">
+      <div class="flex flex-wrap items-center gap-3 mt-2">
         ${submission.foto_ktp_url ? `
-          <a href="${submission.foto_ktp_url}" target="_blank"
-             class="underline text-sm">Lihat Foto KTP</a>` : ``}
+          <button class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm"
+                  data-viewer='{"type":"auto","title":"Foto KTP - ${submission.nama_lengkap}","src":"${submission.foto_ktp_url.replaceAll('"','&quot;')}"}'>
+            Lihat Foto KTP
+          </button>` : ``}
         ${submission.surat_keterangan_url ? `
-          <a href="${submission.surat_keterangan_url}" target="_blank"
-             class="underline text-sm">Lihat Surat</a>` : ``}
+          <button class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm"
+                  data-viewer='{"type":"auto","title":"Surat Keterangan - ${submission.nama_lengkap}","src":"${submission.surat_keterangan_url.replaceAll('"','&quot;')}"}'>
+            Lihat Surat
+          </button>` : ``}
         <span class="text-xs text-gray-500 ml-auto">
           Dikirim: ${new Date(submission.tanggal_pengajuan).toLocaleString("id-ID")}
         </span>
       </div>
     </div>
   `).join("");
-}
 
+  // Delegasi klik tombol viewer
+  container.querySelectorAll("button[data-viewer]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      try {
+        const payload = JSON.parse(btn.getAttribute("data-viewer"));
+        openViewer(payload.src, payload.title, payload.type);
+      } catch (e) {
+        console.error(e);
+        showToast("Gagal membuka pratinjau.", "error");
+      }
+    });
+  });
+}
 // ============================================
 // INIT OPTIONS (Tanggal/Bulan/Tahun)
 // ============================================
